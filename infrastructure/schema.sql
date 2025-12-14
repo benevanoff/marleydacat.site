@@ -9,6 +9,12 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 
+DROP TABLE IF EXISTS `user_invites`;
+CREATE TABLE user_invites (
+    invite_key VARCHAR(255) PRIMARY KEY,
+    username VARCHAR(255) -- foreign key ?
+);
+
 DROP TABLE IF EXISTS `posts`;
 CREATE TABLE posts (
     post_id INT PRIMARY KEY AUTO_INCREMENT,

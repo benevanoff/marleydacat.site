@@ -35,6 +35,36 @@ def get_sessions():
 def hash_password(password:str):
     return nacl.pwhash.argon2id.str(password.encode('utf-8')).decode('utf-8')
 
+# User Registration/Creation Route
+class RegistrationRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    invite_token:str
+@user_router.post("/users/register")
+async def user_register(request:RegistrationRequest, sql_client=Depends(get_db)):
+    async with sql_client.cursor() as cur:
+        # look for unused invite token
+        await cur.execute("""
+            SELECT username
+            FROM user_invites
+            WHERE invite_key = %s
+        """, request.invite_token)
+        result_row = await cur.fetchall()
+        if len(result_row) < 1:
+            raise HTTPException(status_code=403)
+        # add the user to the database
+        await cur.execute("""
+            INSERT IGNORE INTO users (username, email, password)
+                VALUES (%s, %s, %s)
+        """, (request.username, request.email, hash_password(request.password)))
+        # associate the user with the invite token so that it cannot be re-used
+        await cur.execute("""
+            UPDATE user_invites
+            SET username = %s
+            WHERE invite_key = %s
+        """, (request.username, request.invite_token))
+
 # User Login Route
 class LoginRequest(BaseModel):
     username: str
