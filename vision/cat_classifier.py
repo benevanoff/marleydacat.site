@@ -19,8 +19,8 @@ class DataLoader:
         Get a balanced and randomized list of tuples of
         training image file paths and binary class labels.
         '''
-        positive_examples = [(f'{self.train_data_dir}/cats/{filename}', 1.0) for filename in os.listdir(f'{self.train_data_dir}/cats')]
-        negative_examples = [(f'{self.train_data_dir}/squirrels/{filename}', 0.0) for filename in os.listdir(f'{self.train_data_dir}/squirrels')]
+        positive_examples = [(f'{self.train_data_dir}/google_images/cats/{filename}', 1.0) for filename in os.listdir(f'{self.train_data_dir}/google_images/cats')] + [(f'{self.train_data_dir}/reddit/cats/{filename}', 1.0) for filename in os.listdir(f'{self.train_data_dir}/reddit/cats')]
+        negative_examples = [(f'{self.train_data_dir}/google_images/other/{filename}', 0.0) for filename in os.listdir(f'{self.train_data_dir}/google_images/other')] + [(f'{self.train_data_dir}/reddit/pics/{filename}', 0.0) for filename in os.listdir(f'{self.train_data_dir}/reddit/pics')]
         m = min(len(positive_examples), len(negative_examples))-1
         examples = positive_examples[:m] + negative_examples[:m]
         random.shuffle(examples)
@@ -71,8 +71,8 @@ class CatClassifier(nn.Module):
     
     def predict(self, image_tensor):
         return torch.sigmoid(self.forward(image_tensor))
-
-if __name__ == "__main__":
+    
+def trainModel():
     start = time.time()
     data_loader = DataLoader('data')
     total_imgs = len(data_loader.get_training_images())
@@ -101,10 +101,27 @@ if __name__ == "__main__":
                 print("pred y", torch.sigmoid(pred_y))
                 print("running_loss", running_loss)
                 print(str(point_counter) + "/" + str(total_imgs))
-                break
         print("Epoch loss:", running_loss)
 
     torch.save(classifier.state_dict(), "cat-classifier.pt")
 
     processing_timestamp = time.time()
     print(f'Execution time: {processing_timestamp-start}')
+
+if __name__ == "__main__":
+    if sys.argv[1] == "train":
+        trainModel()
+    elif sys.argv[1] == "inference":
+        vit_processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224')
+        cat_logistic_classifier = CatClassifier()
+        cat_logistic_classifier.load_state_dict(torch.load('cat-classifier.pt'))
+        cat_logistic_classifier.eval()
+        cat_logistic_classifier.vision_transformer.eval()
+
+        with open(sys.argv[2], 'rb') as img_bytes:
+            with torch.no_grad():
+                img_feats = vit_processor(images=[Image.open(img_bytes).convert('RGB')], return_tensors="pt")["pixel_values"]
+                probability = cat_logistic_classifier.predict(img_feats)
+                print(probability)
+                prediction = float(probability[0][0])
+                print(prediction)
