@@ -21,7 +21,8 @@ origins = [
     "http://192.168.1.167:3000",
     "http://marleydacat.site",
     "https://marleydacat.site",
-    "http://http://146.190.141.184"
+    "http://http://146.190.141.184",
+    "https://www.benevanoff.dev"
 ]
 app.add_middleware(
     CORSMiddleware,
