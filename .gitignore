@@ -2,3 +2,6 @@ __pycache__/
 venv/
 .pytest_cache/
 vision/data/
+**/.DS_Store
+backend/image_storage
+vision/cat-classifier.pt
