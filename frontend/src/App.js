@@ -1,6 +1,7 @@
 import './App.css';
 import DraftPost from './components/DraftPost';
 import Login from './components/Login';
+import Register from './components/Register';  // ADD THIS LINE
 import CatProfile from './components/CatProfile';
 import CatScroll from './components/CatScroll'
 import NavigationButtons from './components/NavigateButtons';
@@ -39,6 +40,7 @@ function App() {
         <Routes>
           <Route path="/" element={<CatScroll />} />
           <Route path="/login" element={<Login setUsernameFunc={setUsername}/>} />
+          <Route path="/register" element={<Register />} />  {/* ADD THIS LINE */}
           <Route path="/post" element={<DraftPost />} />
           <Route path="/scroll" element={<CatScroll />} />
           <Route path="/profile/:username" element={<CatProfile />} />
